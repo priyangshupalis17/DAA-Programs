@@ -75,37 +75,3 @@ void DFS(int i)
        if(!visited[j]&&G[i][j]==1)
             DFS(j);
 }
-
-/*OUTPUT
-Enter number of vertices:7
-
-Enter adjecency matrix of the graph:
-0 0 1 1 0 0 0
-0 0 0 1 1 0 0
-1 0 0 1 0 1 0
-1 1 1 0 1 1 1 
-0 1 0 1 0 0 1
-0 0 1 1 0 0 0
-0 0 0 1 1 0 0
-
-0
-2
-3
-1
-4
-6
-5
-
-TOPOLOGICAL ORDERING
-Enter the no of vertices: 7
-Enter the adjacency matrix:-
-0 0 1 1 0 0 0
-0 0 0 1 1 0 0
-0 0 0 0 0 1 0
-0 0 1 0 0 1 1
-0 0 0 1 0 0 1
-0 0 0 0 0 0 0
-0 0 0 0 0 0 0
-
-The topological order is: 1 2 5 4 3 6 7
-*/
