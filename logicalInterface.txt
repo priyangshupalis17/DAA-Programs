@@ -1,0 +1,187 @@
+Decimal UP / Decimal Down / Ring Counter:
+--------------
+
+#include <reg51.h>
+typedef unsigned char tByte; //8 bits
+typedef unsigned int tWord; //16 bits
+void delayMs(tWord); //Delay function
+sbit key1 = P3^2;
+sbit key2 = P3^3;
+sbit key3 = P3^4;
+int main(void)
+{
+tByte count=0,i,temp;
+tWord delay = 1000; //Delay in milliseconds used for counting
+P0 = 0x00; //Clear all LEDs
+while(1)
+{
+/*Program while loop, code in this loop will run continuously. When one of the
+keys is pressed, run the appropriate counter and exit back to this loop to check for
+key press again. When a key is pressed, the input value to the microcontroller will
+be 0.*/
+if(key1 == 0)
+{
+/* Decimal Up counter loop, use a for loop to increment the counting variable
+from 0 to 99, and output the number to P0, the output port used for the interface
+module.To display as decimal in the leds, first take the first digit of the number,
+next take the second digit and set it as the upper nibble by first left shifting it 4
+times and then ORing it. */
+for(count = 0 ; count <= 99 ; count++)
+{
+P0 = (count / 10) << 4 | count % 10;
+delayMs(delay);
+}
+P0=0x00; //Turn all LEDs off
+}
+if(key2 == 0)
+{ //Decimal Down counter loop, works similar to the up counting loop, but
+//the for loop is used to decrement from 99 to 0
+for(count = 99 ; count >= 0 ; count--)
+{
+P0 = (count / 10) << 4 | count % 10;
+delayMs(delay);
+}
+P0=0x00; //Turn all LEDs off
+}
+if(key3 == 0)
+{
+while(1)
+{
+for(i = 0; i < 8; i++)
+{
+P0 = 0x01<<i; // 0x01 means 0000 0001 bit pattern
+delayMs(delay);
+}
+}
+}
+}
+}
+void delayMs(tWord x)
+{
+tWord i;
+while(x--)
+for(i=0;i<120;i++);
+}
+
+
+EXPERIMENT 1(b)2: FF if it is even parity otherwise display 00.
+---------------
+
+#include<reg51.h>
+typedef unsigned char tByte;
+typedef unsigned int tWord;
+sbit SEL = P1^4;
+void delayMs(tWord); //Delay function
+tByte readInput(void); //Read 8 bits from input port
+tByte countOnes(tByte); //Returns number of 1s in the argument
+int main(void)
+{
+tByte temp,count;
+while(1)
+{
+temp = readInput(); // read the 8 bit data from logic controller
+count = countOnes(temp); // count the number of 1's in the 8 bit data
+if(count % 2 == 0) // logic to check EVEN or ODD parity
+P0 = 0xFF; // display all 1's for EVEN parity
+else
+P0 = 0x00; // display all 0's for ODD parity
+delayMs(1000);
+P0 = count; // now display count of 1's for next 1 second
+delayMs(1000);
+}
+}
+tByte countOnes(tByte x)
+{
+tByte i,count = 0;
+for(i = 0 ;i < 8 ;i++) // loop to check 8 different bits of a number
+{
+if(x & (0x01<<i))
+count++; // keep incrementing whenever any bit is found as 1
+}
+return count; //return count of 1's in a given number
+}
+tByte readInput(void)
+{
+tByte temp = 0;
+SEL = 0; // read the lower nibble
+temp = P1 & 0x0F;
+SEL = 1; // read the upper nibble
+temp = (P1 & 0x0F) << 4 | temp; // shift 4bits, for upper nibble
+return temp; // and then OR with lower nibble
+}
+void delayMs(tWord x)
+{
+tByte i;
+while(x--)
+for(i=0;i<120;i++);
+}
+
+
+EXPERIMENT 1(b)3: MULTIPLICATION a&b
+---------------
+
+#include<reg51.h>
+typedef unsigned char tByte; //8 bits
+typedef unsigned int tWord; //16 bits
+void delayMs(tWord); //Delay function
+tByte readInput(void); //Read 8 bits from input port
+sbit SEL = P1^4;
+sbit key1 = P3^2;
+sbit key2 = P3^3;
+sbit key3 = P3^4;
+int main(void)
+{
+tWord a = 0,b = 0,c = 0; //equation is c = a * b
+P0 = 0x00; //Clear all LEDs
+while(1)
+{
+if(!key1)
+{
+/* When key1 is pressed, the variable a is updated with the current value of the
+input port. The updated value of a is displayed for half a second. */
+a = readInput();
+P0 = a;
+delayMs(500);
+P0 = 0x00;
+delayMs(500);
+}
+if(!key2)
+{
+/* When key1 is pressed, the variable b is updated with the current value of the
+input port. The updated value of b is displayed for half a second. */
+b = readInput();
+P0 = b;
+delayMs(500);
+P0 = 0x00;
+delayMs(500);
+}
+if(!key3)
+{
+/* When key3 is pressed, the result of multiplication of the current values of a and
+b is assigned to c. First the LSB of the result is displayed by ANDing the result
+with 0xFF .Next the MSB is displayed by right shifting the result 8 times and
+writing it to P0. */
+c = a*b;
+P0 = c & 0xFF;
+delayMs(1000);
+P0 = c >> 8;
+delayMs(1000);
+P0 = 0x00;
+}
+}
+}
+tByte readInput(void)
+{
+tByte temp = 0;
+SEL = 0; // read the lower nibble
+temp = P1 & 0x0F;
+SEL = 1; // read the upper nibble
+temp = (P1 & 0x0F) << 4 | temp; // shift 4bits, for upper nibble and then OR with lower nibble
+return temp;
+}
+void delayMs(tWord x)
+{
+tByte i;
+while(x--)
+for(i=0;i<120;i++);
+}

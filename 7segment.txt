@@ -1,0 +1,47 @@
+7 SEGMENT LED:
+------------
+
+#include <reg52.h>
+typedef unsigned char tByte; //8 bits
+typedef unsigned int tWord; //16 bits
+sbit DAT = P0^0;
+sbit CLK = P0^1;
+void delayMs(tWord); //Delay function
+void writeSeg(tByte); //Write the 8bit seven segment code to 7segment display
+int main(void)
+{
+int i = 0;
+tByte help[4] = {0x89,0x86,0xC7,0x8C};
+tByte fire[4] = {0x8E,0xCF,0xAF,0x86};
+P0 = 0x00;
+while(1)
+{
+for(i=0;i<4;i++)
+writeSeg(help[i]);
+delayMs(1000);
+for(i=0;i<4;i++)
+writeSeg(fire[i]);
+delayMs(1000);
+}
+}
+void writeSeg(tByte x)
+{
+tByte i;
+for(i = 0; i < 8; i++)
+{
+if(x & (0x80>>i)) // extracting and sending the bits one by one
+DAT = 1; // from MSB to LSB
+else
+DAT = 0;
+CLK = 0; //generate one clock pulse to push the data to the shift register
+CLK = 1;
+}
+}
+void delayMs(tWord x)
+{
+//delay in terms of milliseconds(approximate)
+// delay(1000) will produce 1 sec delay
+tWord i;
+while(x--)
+for(i=0;i<75;i++);
+}

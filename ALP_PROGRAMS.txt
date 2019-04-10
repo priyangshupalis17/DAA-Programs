@@ -1,0 +1,229 @@
+i. TRANSFER BLOCK OF DATA
+
+ORG 0000H
+; Setup counter
+MOV R1, #05H ; Number of elements
+; Setup Pointer
+MOV R0, #50H
+; Pointer to 50H memory location (Data Mem)
+MOV DPTR, #0100H
+; Pointer to 100 H memory location (Code Mem)
+L1: CLR A
+; Do the data transfer
+MOVC A,@A+DPTR
+MOV @R0, A
+; Update the pointer
+INC DPTR
+INC R0
+; Check for completion of the count
+DJNZ R1, L1
+; Store the data in the code memory
+ORG 0100H
+BLOCK1 : DB 10H,11H,12H,13H,14H
+END
+
+ii. Write an 8051 ALP to perform linear search of n 8-bit numbers
+
+SRCH EQU 11H
+RESULT EQU 70H
+N EQU 5
+ORG 0000H
+SJMP AHEAD ; data stored along with the code, hence jump over data
+DATA1: DB 24H,45H,72H,30H,10H
+AHEAD :
+MOV DPTR, #DATA1 ; Set Up Dptr And Data
+MOV R3,#N ; Set Up Counter And Search Element
+;Perform Operation
+CLR A
+CONT:
+MOVC A,@A+DPTR
+CJNE A,#SRCH,NOTFND
+MOV RESULT,#0FFH
+SJMP DONE
+NOTFND: ; Update Pointer And Check For Counter
+INC DPTR
+DJNZ R3,CONT
+MOV RESULT,#0FH
+DONE:
+SJMP $
+END
+
+
+Experiment No 2a:
+AIM: Write an 8051 ALP program to perform Arithmetic operations (addition / subtraction /
+multiplication / division operations). ALP to implement simple calculator is given below
+
+OPTION EQU 00H ; 0-Addition ,1-Subtraction, 2-Multiplication, 3-Division
+NUM1 EQU 02H ; First number
+NUM2 EQU 07H ; Second number
+ORG 0000H
+MOV R0, #OPTION
+CJNE R0, #00,CKSUB
+MOV A, #NUM1
+MOV B, #NUM2
+ADD A, B ; Perform Addition
+MOV B, #00 ; B Has Carry
+JNC SKIP
+MOV B, #01H
+SKIP:
+SJMP LAST
+CKSUB:
+CJNE R0,#01,CKMUL
+MOV A, #NUM1
+MOV B, #NUM2
+CLR C ; Reset Borrow Flag
+SUBB A , B ; Perform Subtraction
+MOV B, #00 ; B Indicates Borrow
+JNC SKIP1
+MOV B, #0FFH ; FF Indicates Negative Number
+SKIP1:
+SJMP LAST
+CKMUL:
+CJNE R0, #02, CKDIV
+MOV A, #NUM1
+MOV B, #NUM2 ; Perform Multiplication
+MUL AB ; 16 bit product in AB with A having lower byte
+SJMP LAST
+CKDIV:
+CJNE R0, #03, OTHER
+MOV A, #NUM1
+MOV B, #NUM2 ; Perform Division
+DIV AB ; Quotient in A & remainder in B
+SJMP LAST
+OTHER:
+MOV A, #00 ; Store 00 for invalid option
+MOV B, #00
+LAST:
+MOV R0, #70H ; Answer is stored in the Data memory 70h and 71h
+MOV @R0, A
+INC R0
+MOV @R0, B
+HERE:
+SJMP HERE
+END
+
+
+Experiment No 3a:
+AIM: Write an 8051 A LP to perform following number conversions
+i. binary to BCD
+ii. binary to ASCII.
+
+ORG 0000H
+MOV 70H, #0FFH ;
+MOV R0, #75H
+MOV A, 70H ; Get hex number / binary number
+MOV B,#10 ; 10 is the base of the destination number system (BCD)
+DIV AB ; divide by 10 (0AH) to extract the decimal digits
+XCH A,B
+MOV @R0,A ; Store the remainder (in B) in units place
+XCH A, B
+MOV B, #10 ; divide by 10(0Ah) to extract next BCD digit
+DIV AB
+DEC R0
+XCH A,B
+MOV @R0, A ; Store the remainder (in B) in tens place
+XCH A,B
+DEC R0
+MOV @R0,A ; Store the quotient (in A) in hundreds place
+HERE: SJMP HERE
+END
+
+ii. BINARY TO ASCII:
+
+ORG 0000H
+MOV A, 70H //2-digit number to be converted is given in data memory 70h
+ANL A, #0F0H //obtain upper digit
+SWAP A //bring to the units place
+CJNE A,#0AH,CONTINU1
+CONTINU1:
+JNC NEXT
+ADD A, #30H
+JMP STORE1
+NEXT :
+ADD A,#37H
+STORE1:
+MOV 71H, A
+MOV A, 70H
+ANL A, #0FH //obtain LOWER digit
+CJNE A, #0AH,CONTINU2
+CONTINU2:
+JNC LAST
+ADD A,#30H
+JMP STORE2
+LAST:
+ADD A, #37H
+STORE2:
+MOV 72H, A
+HERE: SJMP HERE
+END
+
+4(a). MINIMUM Value:
+
+COUNT EQU 05H
+MIN EQU	71H
+ORG 00000H
+JMP AHEAD
+ORG 0100H
+ELEMENTS: DB 0FH, 10H, 06H, 0A1H, 0FFH
+AHEAD:
+MOV DPTR, #ELEMENTS
+CLR A
+MOVC A, @A+DPTR
+MOV MIN, A
+MOV R0, #COUNT
+DEC R0
+BACK:
+INC DPTR
+CLR A
+MOVC A, @A+DPTR
+MOV R1, A
+SUBB A,MIN
+JNC SKIP
+MOV MIN, R1
+SKIP:
+DJNZ R0, BACK
+SJMP $
+END
+
+
+5(a) BUBBLE SORT:
+
+COUNT EQU 5
+ORG 0000H
+SJMP START
+ORG 0030H
+NUMS: DB 20H, 10H, 99H, 32H, 02H
+START: MOV R0, #05H
+MOV DPTR, #NUMS
+MOV R1, #70H
+NEXT:
+CLR A
+MOVC A, @A+DPTR
+MOV @R1, A
+INC DPTR
+INC R1
+DJNZ R0, NEXT
+MOV R1, #COUNT
+DEC R1
+AGAIN:
+MOV B, R1
+MOV R2, B
+MOV R0, #70H
+UP:
+MOV A, @R0
+INC R0
+MOV B, @R0
+CLR C
+SUBB A,B
+JC SKIP
+DEC R0
+MOV A,B
+XCH A, @R0
+INC R0
+MOV @R0, A
+SKIP:
+DJNZ R2, UP
+DJNZ R1, AGAIN
+HERE:
+SJMP HERE
+END
