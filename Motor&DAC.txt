@@ -1,0 +1,103 @@
+STEPPER MOTOR:
+----------
+
+#include <reg52.h>
+typedef unsigned char tByte;
+typedef unsigned int tWord;
+//name the windings, P0 bits 7,6,5,4 are connected to stepper windings
+sbit W3 = P0^7;
+sbit W2 = P0^6;
+sbit W1 = P0^5;
+sbit W0 = P0^4;
+no_of_steps_clk = 100 ; //number of steps to move in clockwise direction
+no_of_steps_anticlk = 100 ;//number of steps to move in anti-clockwise direction
+void delayMs(tByte);
+main()
+{ while(1)
+{ W3=1; W2=0; W1=0; W0=0; delayMs(5); if(--no_of_steps_clk==0) break;
+W3=0; W2=1; W1=0; W0=0; delayMs(5); if(--no_of_steps_clk==0) break;
+W3=0; W2=0; W1=1; W0=0; delayMs(5); if(--no_of_steps_clk==0) break;
+W3=0; W2=0; W1=0; W0=1; delayMs(5); if(--no_of_steps_clk==0) break;
+}
+while(1)
+{ W3=0; W2=0; W1=0; W0=1; delayMs(5); if(--no_of_steps_anticlk==0) break;
+W3=0; W2=0; W1=1; W0=0; delayMs(5); if(--no_of_steps_anticlk==0) break;
+W3=0; W2=1; W1=0; W0=0; delayMs(5); if(--no_of_steps_anticlk==0) break;
+W3=1; W2=0; W1=0; W0=0; delayMs(5); if(--no_of_steps_anticlk==0) break;
+}
+while(1); //end of program, stay here
+}
+void delayMs(tByte x) //delay in terms of milliseconds(approximate)
+{ // delay(1000) will produce 1 sec delay
+tWord i;
+while(x--)
+for(i=0;i<300;i++);
+}
+
+
+DAC MODULE:
+----------
+
+#include <reg52.h>
+typedef unsigned char tByte;
+typedef unsigned int tWord;
+//name the keys located on the RV-USBbased8051 Board
+sbit key1 = P3^2;
+sbit key2 = P3^3;
+sbit key3 = P3^4;
+// store the following sine tables in code memory
+tByte code dac_datas_sine_fullrectified[ ] =
+{128+0, 128+13, 128+26, 128+39, 128+51, 128+63, 128+74, 128+84, 128+94, 128+102,
+128+109, 128+116, 128+120, 128+124, 128+126, 128+127, 128+126, 128+124, 128+120,
+128+116, 128+109, 128+102, 128+94, 128+84, 128+74, 128+63, 128+51, 128+39, 128+26,
+128+13};
+// total 30 values
+tByte code dac_datas_sine_full[ ] =
+{128+0, 128+13, 128+26, 128+39, 128+51, 128+63, 128+74, 128+84, 128+94, 128+102,
+128+109, 128+116, 128+120, 128+124, 128+126, 128+127, 128+126, 128+124, 128+120,
+128+116, 128+109, 128+102, 128+94, 128+84, 128+74, 128+63, 128+51, 128+39, 128+26,
+128+13, 128-0, 128-13, 128-26, 128-39, 128-51, 128-63, 128-74, 128-84, 128-94, 128-102,
+128-109, 128-116, 128-120, 128-124, 128-126, 128-127, 128-126, 128-124, 128-120, 128- 116,
+128-109, 128-102, 128-94, 128-84, 128-74, 128-63, 128-51, 128-39, 128-26,128-13};
+// total 60 values
+tByte code dac_datas_sine_halfrectified [ ] =
+{128+0, 128+13, 128+26, 128+39, 128+51, 128+63, 128+74, 128+84, 128+94, 128+102,
+128+109, 128+116, 128+120, 128+124, 128+126, 128+127, 128+126, 128+124, 128+120,
+128+116, 128+109, 128+102, 128+94, 128+84, 128+74, 128+63, 128+51, 128+39, 128+26,
+128+13, 128, 128, 128, 128, 128, 128, 128, 128, 128, 128, 128, 128, 128, 128, 128, 128, 128,
+128, 128, 128, 128, 128, 128, 128, 128, 128, 128, 128, 128, 128};
+main()
+{
+tByte i=0,j=0,k=0;
+key1=key2=key3=1; //configure as inputs
+while(1)
+{
+//full rectified sine waveform
+if(key1==0)
+while(1) //continuously output the data in the table to the DAC connected to P0
+{
+P0 = dac_datas_sine_fullrectified[i++];
+if(i==30) i=0; // total of 30 digital values are stored in the table to
+// produce full rectified sine wave
+if(key1==0 || key2==0 || key3==0)break; //check for the key press
+};
+//full sine waveform
+if(key2==0)
+while(1)
+{
+P0 = dac_datas_sine_full[j++];
+if(j==60) j=0; // total of 30 digital values are stored in the table to
+// produce full sine wave
+if(key1==0 || key2==0 || key3==0)break;
+}
+//half rectified sine waveform
+if(key3==0)
+while(1)
+{
+P0 = dac_datas_sine_halfrectified[k++];
+if(k==60) k=0; // total of 30 digital values are stored in the table to
+// produce half rectified sine wave
+if(key1==0 || key2==0 || key3==0)break;
+};
+}
+}
